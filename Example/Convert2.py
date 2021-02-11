@@ -7,7 +7,7 @@ import pprint
 import shutil
 import gzip
 
-input_dir = "new_mew"  # Sub folder of webfiles
+input_dir = "spa_new"  # Sub folder of webfiles
 output_dir = "HTML_minified"
 
 # try:
@@ -22,6 +22,7 @@ f_output_minified = f_output + "/minified"
 f_output_compressed = f_output + "/compressed"
 f_output_c_source = f_output + "/c_source"
 output_file_c_header = "web_file.h"
+output_file_var_list = "var_list.txt"
 
 dict_output_sub_dir = {
     "minified":"minified",
@@ -85,7 +86,7 @@ def file2Hex(filename):
 
 file_list = []
 
-'''
+
 try:
     shutil.rmtree(f_output)
 except OSError as e:
@@ -96,13 +97,21 @@ os.mkdir(f_output)
 for dirs in dict_output_sub_dir:
     path = os.path.join(f_output, dirs)
     os.mkdir(path)
-'''
 
-def create_source_file():
+
+def create_source_files():
     with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_c_header), "w") as c_src:
         c_src.write("#ifndef " + output_file_c_header.split('.')[0].upper() + "_H_\n#define " + output_file_c_header.split('.')[0].upper() + "_H_")
+        c_src.write("\n\n")
+        c_src.write("#include<Arduino.h>")
         c_src.write("\n" * 2)
         c_src.close()
+
+    with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_var_list), "w") as v_list:
+        v_list.write("\n" * 2)
+        v_list.write("List of variables created in file : " + output_file_c_header)
+        v_list.write("\n" * 2)
+        v_list.close()
 
 def terminate_source_file():
     with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_c_header), "a+") as c_src:
@@ -113,17 +122,26 @@ def write_to_file(filepath = "", data=""):
     with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_c_header), "a+") as c_src:
         c_src.write("\n" * 2)
         # filepath = css/main.css
+        if "BarlowCondensed" in filepath:
+            print("Hey ! Stop man.")
+
         filename = os.path.basename(filepath)
-        file_extension = filename.split('.')[1]
-        file_name_w_ext = filename.split('.')[0]
+
+        file_name_w_ext = os.path.splitext(filename)[0]
+        file_extension = os.path.splitext(filename)[1]
 
         filepath = "/".join(filepath.strip("\\").split('\\')[1:])
 
         path_for_src = filepath.replace("\\", "/")
+        file_name_w_ext = file_name_w_ext.replace("-", "_")
+        file_name_w_ext = file_name_w_ext.replace(".", "_")
+        file_name_w_ext = file_name_w_ext.replace("x", "_")
 
-        c_src.write("const char* path_" + file_name_w_ext + "_" + file_extension +  " PROGMEM = " + "\"" + path_for_src + "\";\n\n")
+        file_extension = file_extension.replace(".", "")
 
-        c_src.write("const char data_" + file_name_w_ext + "_" + file_extension +  "[] PROGMEM = { " )
+        c_src.write("const char* path_" + file_name_w_ext + "_" + file_extension + " PROGMEM = " + "\"" + path_for_src + "\";\n\n")
+
+        c_src.write("const char data_" + file_name_w_ext + "_" + file_extension + "[] PROGMEM = { " )
 
         hex_len = len(data)
         if hex_len > 0:
@@ -139,6 +157,15 @@ def write_to_file(filepath = "", data=""):
             print("invalid hex string")
         c_src.write(" };\n")
         c_src.close()
+
+        with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_var_list), "a+") as v_list:
+            # v_list.write("path_" + file_name_w_ext + "_" + file_extension + "\n")
+            # v_list.write("data_" + file_name_w_ext + "_" + file_extension + "\n")
+            # v_list.write("handler_" + file_name_w_ext + "_" + file_extension + "\n")
+            v_list.write("Webserver->on(path_" + file_name_w_ext + "_" + file_extension + ", HTTP_GET, " + "handler_" + \
+                         file_name_w_ext + "_" + file_extension + ");\n")
+            # v_list.write("\n")
+            v_list.close()
 
 
 for root, dirs, files in os.walk(input_dir, topdown=False):
@@ -159,10 +186,10 @@ for root, dirs, files in os.walk(input_dir, topdown=False):
         file_details_dict["filepath"] = fullfilename
         file_details_dict["filename"] = filename
         file_details_dict["filetype"] = os.path.splitext(filename)[1]
-        file_details_dict["relpath"] = dirname;
+        file_details_dict["relpath"] = dirname
         file_list.append(file_details_dict)
         del file_details_dict
-'''
+
 for file in file_list:
     if file["filepath"].endswith(".js"):
         print("Output JAVASRIPT: " + file["filepath"])
@@ -191,11 +218,11 @@ for file in file_list:
         shutil.copyfile(file["filepath"], os.path.join(f_output, dict_output_sub_dir["minified"], file["filename"]))
 
 compress_file()
-'''
+
 
 print("file will be converted to HEX")
 # with open(os.path.join(f_output, "test.txt"), "x") as flo:
-create_source_file()
+create_source_files()
 for file in file_list:
     print("Writing content of " + file["filepath"])
     # a = file2Hex(os.path.join(dict_output_sub_dir["compressed"], file["filename"] + ".gz"))

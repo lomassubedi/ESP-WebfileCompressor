@@ -1,0 +1,23 @@
+
+
+List of variables created in file : web_file.h
+
+Webserver->on(path_app_css, HTTP_GET, handler_app_css);
+Webserver->on(path_vendor_css, HTTP_GET, handler_vendor_css);
+Webserver->on(path_BarlowCondensed_e396fd4d_woff, HTTP_GET, handler_BarlowCondensed_e396fd4d_woff);
+Webserver->on(path_flUhRq6tzZclQEJ_Vdg_IuiaDsNcIhQ8tQ_c8685531_woff2, HTTP_GET, handler_flUhRq6tzZclQEJ_Vdg_IuiaDsNcIhQ8tQ_c8685531_woff2);
+Webserver->on(path_favicon_128_128_png, HTTP_GET, handler_favicon_128_128_png);
+Webserver->on(path_favicon_16_16_png, HTTP_GET, handler_favicon_16_16_png);
+Webserver->on(path_favicon_32_32_png, HTTP_GET, handler_favicon_32_32_png);
+Webserver->on(path_favicon_96_96_png, HTTP_GET, handler_favicon_96_96_png);
+Webserver->on(path_2_js, HTTP_GET, handler_2_js);
+Webserver->on(path_3_js, HTTP_GET, handler_3_js);
+Webserver->on(path_4_js, HTTP_GET, handler_4_js);
+Webserver->on(path_5_js, HTTP_GET, handler_5_js);
+Webserver->on(path_6_js, HTTP_GET, handler_6_js);
+Webserver->on(path_7_js, HTTP_GET, handler_7_js);
+Webserver->on(path_8_js, HTTP_GET, handler_8_js);
+Webserver->on(path_app_js, HTTP_GET, handler_app_js);
+Webserver->on(path_vendor_js, HTTP_GET, handler_vendor_js);
+Webserver->on(path_favicon_ico, HTTP_GET, handler_favicon_ico);
+Webserver->on(path_inde__html, HTTP_GET, handler_inde__html);
