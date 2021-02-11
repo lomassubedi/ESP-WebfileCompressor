@@ -5,7 +5,7 @@ import sys
 import os
 import binascii
 
-input_dir = "new_mew"  # Sub folder of webfiles
+input_dir = "HTML"  # Sub folder of webfiles
 output_dir = "HTML_minified"
 
 # try:

@@ -21,11 +21,12 @@ f_output = "output"
 f_output_minified = f_output + "/minified"
 f_output_compressed = f_output + "/compressed"
 f_output_c_source = f_output + "/c_source"
+output_file_c_header = "web_file.h"
 
 dict_output_sub_dir = {
     "minified":"minified",
     "compressed":"compressed",
-    "c_source":"c_source"
+    "source":"source"
 }
 # print("Output stored at : " + f_output)
 
@@ -55,6 +56,7 @@ def minify_css(input_file):
     return response.text
 
 def compress_file():
+    print("Files getting compressed ")
     for file in file_list:
         with open(os.path.join(f_output, dict_output_sub_dir["minified"], file["filename"]), 'rb') as src, \
                 gzip.open(os.path.join(f_output, dict_output_sub_dir["compressed"], file["filename"] + ".gz"), 'wb') as dst:
@@ -71,11 +73,7 @@ def file2Hex(filename):
         binLen = os.path.getsize(filename)
         byte = myfile.read(1)
         for byte_num in range(0, binLen):
-        # while byte != "":
-        #     try:
             output_str += hex(ord(byte))
-            # except:
-            #     print("got an error");
             if (x != binLen):
                 output_str += ","
             x += 1
@@ -87,6 +85,7 @@ def file2Hex(filename):
 
 file_list = []
 
+'''
 try:
     shutil.rmtree(f_output)
 except OSError as e:
@@ -97,6 +96,49 @@ os.mkdir(f_output)
 for dirs in dict_output_sub_dir:
     path = os.path.join(f_output, dirs)
     os.mkdir(path)
+'''
+
+def create_source_file():
+    with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_c_header), "w") as c_src:
+        c_src.write("#ifndef " + output_file_c_header.split('.')[0].upper() + "_H_\n#define " + output_file_c_header.split('.')[0].upper() + "_H_")
+        c_src.write("\n" * 2)
+        c_src.close()
+
+def terminate_source_file():
+    with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_c_header), "a+") as c_src:
+        c_src.write("#endif " + " // End of " + output_file_c_header.split('.')[0].upper() + "_H_")
+        c_src.close()
+
+def write_to_file(filepath = "", data=""):
+    with open(os.path.join(f_output, dict_output_sub_dir["source"], output_file_c_header), "a+") as c_src:
+        c_src.write("\n" * 2)
+        # filepath = css/main.css
+        filename = os.path.basename(filepath)
+        file_extension = filename.split('.')[1]
+        file_name_w_ext = filename.split('.')[0]
+
+        filepath = "/".join(filepath.strip("\\").split('\\')[1:])
+
+        path_for_src = filepath.replace("\\", "/")
+
+        c_src.write("const char* path_" + file_name_w_ext + "_" + file_extension +  " PROGMEM = " + "\"" + path_for_src + "\";\n\n")
+
+        c_src.write("const char data_" + file_name_w_ext + "_" + file_extension +  "[] PROGMEM = { " )
+
+        hex_len = len(data)
+        if hex_len > 0:
+            byte_counter = 0
+            for byte in data:
+                c_src.write(byte)
+                if(byte == ','):
+                    c_src.write(" ")
+                    byte_counter = byte_counter + 1
+                    if((byte_counter % 16) == 0):
+                        c_src.write("\n\t\t\t\t")
+        else:
+            print("invalid hex string")
+        c_src.write(" };\n")
+        c_src.close()
 
 
 for root, dirs, files in os.walk(input_dir, topdown=False):
@@ -105,6 +147,7 @@ for root, dirs, files in os.walk(input_dir, topdown=False):
         file_details_dict = {
             "filepath": None,
             "filename": None,
+            "relpath": None,
             "filetype": None
         }
         fullfilename = os.path.join(root, filename)
@@ -116,9 +159,10 @@ for root, dirs, files in os.walk(input_dir, topdown=False):
         file_details_dict["filepath"] = fullfilename
         file_details_dict["filename"] = filename
         file_details_dict["filetype"] = os.path.splitext(filename)[1]
+        file_details_dict["relpath"] = dirname;
         file_list.append(file_details_dict)
         del file_details_dict
-
+'''
 for file in file_list:
     if file["filepath"].endswith(".js"):
         print("Output JAVASRIPT: " + file["filepath"])
@@ -147,9 +191,17 @@ for file in file_list:
         shutil.copyfile(file["filepath"], os.path.join(f_output, dict_output_sub_dir["minified"], file["filename"]))
 
 compress_file()
+'''
 
-# for file in file_list:
-with open(os.path.join(f_output, "test.txt"), "x") as flo:
-    flo.write(file2Hex(os.path.join(f_output, dict_output_sub_dir["compressed"], "index.html.gz")))
-    flo.close()
+print("file will be converted to HEX")
+# with open(os.path.join(f_output, "test.txt"), "x") as flo:
+create_source_file()
+for file in file_list:
+    print("Writing content of " + file["filepath"])
+    # a = file2Hex(os.path.join(dict_output_sub_dir["compressed"], file["filename"] + ".gz"))
+    # print(a)
+    write_to_file(file["filepath"], file2Hex(os.path.join(f_output, dict_output_sub_dir["compressed"], file["filename"] + ".gz")))
+
+terminate_source_file()
+
 
